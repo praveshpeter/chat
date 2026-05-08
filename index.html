@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NearChat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f; --surface: #13131e; --surface2: #1c1c2e;
+      --border: rgba(255,255,255,0.07); --accent: #7c6fef; --accent2: #ef6f9f;
+      --text: #f0f0f8; --muted: #7878a0; --green: #4ade80;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+    .screen { display: none; position: fixed; inset: 0; overflow-y: auto; align-items: center; justify-content: center; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* HOME */
+    .rings { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(124,111,239,0.12); animation: rpulse 4s ease-in-out infinite; }
+    .ring:nth-child(1){width:180px;height:180px;} .ring:nth-child(2){width:340px;height:340px;animation-delay:1.3s;} .ring:nth-child(3){width:500px;height:500px;animation-delay:2.6s;}
+    @keyframes rpulse{0%,100%{opacity:.5;transform:scale(.97)}50%{opacity:.15;transform:scale(1.03)}}
+    .home-box { text-align: center; padding: 2rem 1.5rem; max-width: 420px; width: 100%; position: relative; z-index: 1; }
+    .logo { font-family:'Syne',sans-serif; font-size:42px; font-weight:700; background:linear-gradient(135deg,#7c6fef,#ef6f9f); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:-1px; }
+    .tagline { font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin:.3rem 0 1.2rem; }
+    .sub { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:2rem; }
+    .btn-main { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:15px; background:linear-gradient(135deg,#7c6fef,#5b50d6); border:none; border-radius:50px; color:#fff; font-family:'Syne',sans-serif; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 24px rgba(124,111,239,.4); transition:transform .15s,box-shadow .15s; margin-bottom:1rem; }
+    .btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,111,239,.5);}
+    .btn-ghost { width:100%; padding:13px; background:transparent; border:1px solid var(--border); border-radius:50px; color:var(--muted); font-size:14px; cursor:pointer; transition:all .15s; margin-bottom:.75rem; }
+    .btn-ghost:hover{border-color:rgba(255,255,255,.2);color:var(--text);}
+    .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:1rem 0 1.5rem;}
+    .badge{background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:5px 14px;font-size:12px;color:var(--muted);}
+    .stats-box{display:flex;align-items:center;gap:2rem;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1rem 2rem;}
+    .stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;display:block;}
+    .stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+    .stat-div{width:1px;height:40px;background:var(--border);}
+
+    /* CARD */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:2.5rem 2rem;max-width:400px;width:calc(100% - 2rem);text-align:center;}
+    .card h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:.6rem;}
+    .card p{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem;}
+    .emoji-icon{font-size:44px;margin-bottom:1.25rem;}
+
+    /* RADAR */
+    .radar{width:90px;height:90px;position:relative;margin:0 auto 1.75rem;display:flex;align-items:center;justify-content:center;}
+    .r-ring{position:absolute;border-radius:50%;border:1.5px solid rgba(124,111,239,.4);animation:rradar 2.4s ease-out infinite;}
+    .r-ring:nth-child(1){width:35px;height:35px;} .r-ring:nth-child(2){width:62px;height:62px;animation-delay:.7s;} .r-ring:nth-child(3){width:90px;height:90px;animation-delay:1.4s;}
+    @keyframes rradar{0%{opacity:.9}100%{opacity:0;transform:scale(1.15)}}
+    .r-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent);z-index:1;}
+    .id-card{display:inline-flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 18px;margin-bottom:1.5rem;text-align:left;}
+    .id-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px;}
+    .id-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;}
+
+    /* AVATAR */
+    .av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7c6fef,#5b50d6);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff;flex-shrink:0;}
+    .av.two{background:linear-gradient(135deg,#ef6f9f,#c14f7a);}
+    .av.sm{width:38px;height:38px;font-size:13px;}
+
+    /* MATCHED */
+    .match-pill{display:inline-block;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--green);border-radius:50px;padding:6px 18px;font-size:13px;font-weight:500;margin-bottom:.4rem;animation:popin .4s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes popin{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+    .match-dist{font-size:13px;color:var(--muted);margin-bottom:1.75rem;}
+    .match-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:1.25rem;}
+    .match-user{display:flex;flex-direction:column;align-items:center;gap:7px;}
+    .match-user span{font-size:12px;color:var(--muted);}
+    .conn-line{width:28px;height:1px;background:var(--border);}
+    .conn-heart{color:var(--accent2);font-size:16px;animation:hb 1.5s ease-in-out infinite;}
+    @keyframes hb{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+    .anon-note{font-size:12px;color:var(--muted);margin-bottom:1.5rem;}
+
+    /* CHAT */
+    #s-chat{display:none;flex-direction:column;}
+    #s-chat.active{display:flex;}
+    .chat-wrap{display:flex;flex-direction:column;height:100vh;max-width:700px;width:100%;margin:0 auto;}
+    .chat-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+    .chat-hdr-left{display:flex;align-items:center;gap:11px;}
+    .chat-hdr-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;}
+    .chat-hdr-sub{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+    .online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+    .btn-end{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:50px;padding:7px 16px;font-size:13px;cursor:pointer;transition:background .15s;}
+    .btn-end:hover{background:rgba(239,68,68,.18);}
+    .messages{flex:1;overflow-y:auto;padding:1.25rem 1rem;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;}
+    .messages::-webkit-scrollbar{width:4px;} .messages::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px;}
+    .sys-msg{align-self:center;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:5px 16px;margin:4px 0;}
+    .mwrap{display:flex;flex-direction:column;max-width:72%;animation:msgin .2s ease;}
+    @keyframes msgin{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .mwrap.me{align-self:flex-end;align-items:flex-end;} .mwrap.them{align-self:flex-start;align-items:flex-start;}
+    .mbubble{padding:10px 15px;border-radius:18px;font-size:14px;line-height:1.55;}
+    .mwrap.me .mbubble{background:linear-gradient(135deg,#7c6fef,#5b50d6);color:#fff;border-bottom-right-radius:4px;}
+    .mwrap.them .mbubble{background:var(--surface2);color:var(--text);border-bottom-left-radius:4px;}
+    .mtime{font-size:11px;color:var(--muted);margin-top:3px;padding:0 4px;}
+    .typing{display:flex;align-items:center;gap:4px;padding:10px 15px;background:var(--surface2);border-radius:18px;border-bottom-left-radius:4px;align-self:flex-start;animation:msgin .2s ease;}
+    .tdot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:tbounce 1.2s infinite;}
+    .tdot:nth-child(2){animation-delay:.2s;} .tdot:nth-child(3){animation-delay:.4s;}
+    @keyframes tbounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+    .chat-input{display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+    .chat-input input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:11px 18px;font-size:14px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s;}
+    .chat-input input:focus{border-color:var(--accent);}
+    .chat-input input::placeholder{color:var(--muted);}
+    .send-btn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c6fef,#5b50d6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s;}
+    .send-btn:hover{transform:scale(1.08);}
+    @media(max-width:480px){.home-box{padding:1.5rem 1.25rem;}.logo{font-size:34px;}.stats-box{gap:1.5rem;padding:1rem 1.5rem;}}
+  </style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div class="rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+  <div class="home-box">
+    <div class="logo">NearChat</div>
+    <div class="tagline">Anonymous · Local · Real</div>
+    <p class="sub">Connect with a random stranger within 10 km.<br>No login. No identity. Just conversation.</p>
+    <button class="btn-main" id="btn-find"><span class="pulse-dot"></span> Find someone nearby</button>
+    <div class="badges">
+      <span class="badge">📍 10 km radius</span>
+      <span class="badge">👤 100% anonymous</span>
+      <span class="badge">🔒 No data saved</span>
+    </div>
+    <div class="stats-box">
+      <div><span class="stat-num" id="stat-online">—</span><span class="stat-lbl">online nearby</span></div>
+      <div class="stat-div"></div>
+      <div><span class="stat-num" id="stat-chats">—</span><span class="stat-lbl">active chats</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCHING -->
+<div id="s-searching" class="screen">
+  <div class="card">
+    <div class="radar"><div class="r-ring"></div><div class="r-ring"></div><div class="r-ring"></div><div class="r-dot"></div></div>
+    <h2>Searching nearby...</h2>
+    <p>Scanning a 10 km radius around you</p>
+    <div class="id-card">
+      <div class="av" id="search-av"></div>
+      <div><span class="id-lbl">Your anonymous name</span><span class="id-name" id="search-name"></span></div>
+    </div>
+    <button class="btn-ghost" id="btn-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- MATCHED -->
+<div id="s-matched" class="screen">
+  <div class="card">
+    <div class="match-pill">✓ Match Found!</div>
+    <div class="match-dist" id="match-dist"></div>
+    <div class="match-row">
+      <div class="match-user"><div class="av" id="m-my-av"></div><span id="m-my-name"></span></div>
+      <div class="conn-line"></div><div class="conn-heart">♥</div><div class="conn-line"></div>
+      <div class="match-user"><div class="av two" id="m-their-av"></div><span id="m-their-name"></span></div>
+    </div>
+    <p class="anon-note">Neither of you can see the other's real identity</p>
+    <button class="btn-main" id="btn-start-chat">Start Chatting →</button>
+    <button class="btn-ghost" id="btn-skip">Skip &amp; find new</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="s-chat" class="screen">
+  <div class="chat-wrap">
+    <div class="chat-hdr">
+      <div class="chat-hdr-left">
+        <div class="av sm two" id="chat-av"></div>
+        <div>
+          <div class="chat-hdr-name" id="chat-name"></div>
+          <div class="chat-hdr-sub"><span class="online-dot"></span> online · <span id="chat-dist"></span></div>
+        </div>
+      </div>
+      <button class="btn-end" id="btn-end">End Chat</button>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="chat-input">
+      <input type="text" id="msg-input" placeholder="Type something..." maxlength="300" autocomplete="off"/>
+      <button class="send-btn" id="btn-send">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M2 8.5L15 2L8.5 15L7.5 9.5L2 8.5Z" fill="white"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ENDED -->
+<div id="s-ended" class="screen">
+  <div class="card">
+    <div class="emoji-icon">👋</div>
+    <h2>Chat Ended</h2>
+    <p>All messages cleared.<br>No conversation was saved anywhere.</p>
+    <button class="btn-main" onclick="restartApp()">Find Someone New</button>
+    <button class="btn-ghost" onclick="goHome()">Go Home</button>
+  </div>
+</div>
+
+<!-- Ably CDN -->
+<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+<script>
+const ABLY_KEY = '1_XAOw.n_HbIg:pswelOC3iFo9I_ZOocN9l7CMPb3AqwQvzNCu5VKPKFY';
+const ADJ = ['Silent','Cosmic','Mystic','Wandering','Hidden','Gentle','Curious','Distant','Brave','Calm','Swift','Quiet','Fuzzy','Bold','Witty','Lucky','Mellow','Eager','Nimble','Vivid','Hollow','Ancient','Neon','Frozen','Golden'];
+const NOU = ['Panda','Comet','Fox','Wave','Cloud','River','Falcon','Cedar','Ember','Pixel','Storm','Maple','Dune','Quill','Prism','Echo','Fern','Tide','Blaze','Orbit','Lynx','Willow','Sparrow','Ridge','Mist'];
+
+const $ = id => document.getElementById(id);
+const randName = () => ADJ[~~(Math.random()*ADJ.length)] + ' ' + NOU[~~(Math.random()*NOU.length)];
+const initials = n => n.split(' ').map(w=>w[0]).join('');
+const timeNow = () => { const d=new Date(); return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`; };
+const esc = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+let myName='', theirName='', myLoc=null, partnerId=null, roomId=null;
+let clientId = 'user_' + Math.random().toString(36).substr(2,9);
+let ably, myChannel, roomChannel;
+let searchInterval = null;
+let isMatched = false;  // Prevent double matching
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(`s-${id}`).classList.add('active');
+}
+
+function setAv(el, name, two=false) {
+  if(!el) return;
+  el.textContent = initials(name);
+  two ? el.classList.add('two') : el.classList.remove('two');
+}
+
+async function updateStats() {
+  try {
+    const res = await fetch('/api/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'stats', clientId })
+    });
+    const data = await res.json();
+    $('stat-online').textContent = data.online ?? 0;
+    $('stat-chats').textContent  = data.activeChats ?? 0;
+  } catch(e) {
+    $('stat-online').textContent = '—';
+    $('stat-chats').textContent  = '—';
+  }
+}
+
+// ── API call to serverless backend ──────────────────────────────────
+async function api(action, data={}) {
+  const res = await fetch('/api/match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, clientId, ...data })
+  });
+  return res.json();
+}
+
+// ── Ably setup ───────────────────────────────────────────────────────
+function initAbly(onReady) {
+  // If already connected, reuse
+  if (ably && ably.connection.state === 'connected') {
+    if (onReady) onReady();
+    return;
+  }
+
+  ably = new Ably.Realtime({ key: ABLY_KEY, clientId });
+
+  // My personal channel — subscribe BEFORE connecting
+  myChannel = ably.channels.get(`user-${clientId}`);
+
+  // Subscribe immediately — Ably queues messages until connected
+  myChannel.subscribe('matched', (msg) => {
+    if (isMatched) return;
+    isMatched = true;
+
+    const { partnerId: pid, partnerName, distance, roomId: rid } = msg.data;
+    partnerId = pid;
+    theirName = partnerName;
+    roomId = rid;
+
+    setAv($('m-my-av'), myName);
+    setAv($('m-their-av'), theirName, true);
+    $('m-my-name').textContent = myName;
+    $('m-their-name').textContent = theirName;
+    $('match-dist').textContent = `${distance} km away`;
+
+    stopSearchPolling();
+    showScreen('matched');
+  });
+
+  // Wait for connection before calling onReady
+  ably.connection.once('connected', () => {
+    console.log('Ably connected, ready to search');
+    if (onReady) onReady();
+  });
+
+  // Handle connection errors
+  ably.connection.on('failed', () => {
+    console.error('Ably connection failed');
+  });
+}
+
+// ── Location ─────────────────────────────────────────────────────────
+function getLocThenSearch() {
+  // Get location first, then init Ably, then search
+  if (navigator.geolocation) {
+    const t = setTimeout(() => {
+      useFallbackLocation();
+    }, 3000);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        clearTimeout(t);
+        myLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        initAbly(() => startSearch());
+      },
+      () => {
+        clearTimeout(t);
+        useFallbackLocation();
+      },
+      { timeout: 3000, maximumAge: 60000 }
+    );
+  } else {
+    useFallbackLocation();
+  }
+}
+
+function useFallbackLocation() {
+  myLoc = { lat: 28.6139+(Math.random()-.5)*.15, lng: 77.2090+(Math.random()-.5)*.15 };
+  initAbly(() => startSearch());
+}
+
+
+
+function startSearch() {
+  myName = randName();
+  $('search-name').textContent = myName;
+  setAv($('search-av'), myName);
+  showScreen('searching');
+  doSearch();
+}
+
+async function doSearch() {
+  isMatched = false;
+  await api('search', { name: myName, lat: myLoc.lat, lng: myLoc.lng });
+  // Poll every 3 seconds in case no match yet
+  searchInterval = setInterval(async () => {
+    if (isMatched) { stopSearchPolling(); return; }  // Already matched, stop
+    const res = await api('search', { name: myName, lat: myLoc.lat, lng: myLoc.lng });
+    if (res.matched) stopSearchPolling();
+  }, 3000);
+  // Also send ping every 8 seconds to stay alive in waiting pool
+  setInterval(() => {
+    if (!isMatched) api('ping');
+  }, 8000);
+}
+
+function stopSearchPolling() {
+  if (searchInterval) { clearInterval(searchInterval); searchInterval = null; }
+}
+
+// ── Room (chat) setup ─────────────────────────────────────────────────
+function joinRoom() {
+  roomChannel = ably.channels.get(`room-${roomId}`);
+
+  roomChannel.subscribe('message', (msg) => {
+    if (msg.data.from === clientId) return; // ignore own messages
+    removeTyping();
+    addMsg('them', msg.data.text, msg.data.time);
+  });
+
+  roomChannel.subscribe('typing', (msg) => {
+    if (msg.data.from !== clientId) showTyping();
+  });
+
+  roomChannel.subscribe('stop-typing', (msg) => {
+    if (msg.data.from !== clientId) removeTyping();
+  });
+
+  roomChannel.subscribe('partner-left', () => {
+    addSysMsg('Partner left the chat.');
+    setTimeout(()=>showScreen('ended'), 1500);
+  });
+}
+
+// ── Button handlers ──────────────────────────────────────────────────
+$('btn-find').onclick = getLocThenSearch;
+
+$('btn-cancel').onclick = () => {
+  stopSearchPolling();
+  api('cancel');
+  goHome();
+};
+
+$('btn-start-chat').onclick = () => {
+  setAv($('chat-av'), theirName, true);
+  $('chat-name').textContent = theirName;
+  $('chat-dist').textContent = $('match-dist').textContent || 'nearby';
+  $('messages').innerHTML = '<div class="sys-msg">Connected! Say hi 👋</div>';
+  joinRoom();
+  showScreen('chat');
+};
+
+$('btn-skip').onclick = () => {
+  api('leave', { partnerId });
+  partnerId=null; theirName=''; roomId=null;
+  doSearch();
+  showScreen('searching');
+};
+
+$('btn-end').onclick = () => {
+  api('leave', { partnerId });
+  showScreen('ended');
+};
+
+$('btn-send').onclick = sendMsg;
+$('msg-input').addEventListener('keydown', e => { if(e.key==='Enter') sendMsg(); });
+
+let typTimer, isTyping=false;
+$('msg-input').addEventListener('input', () => {
+  if(!isTyping) { isTyping=true; api('typing',{partnerId}); }
+  clearTimeout(typTimer);
+  typTimer = setTimeout(()=>{ isTyping=false; api('stop-typing',{partnerId}); }, 1500);
+});
+
+function sendMsg() {
+  const inp=$('msg-input'), text=inp.value.trim();
+  if(!text) return;
+  const time=timeNow();
+  addMsg('me',text,time);
+  api('message',{partnerId,text,time});
+  inp.value='';
+  isTyping=false; api('stop-typing',{partnerId}); clearTimeout(typTimer);
+}
+
+function addMsg(who,text,time) {
+  const msgs=$('messages');
+  const w=document.createElement('div'); w.className=`mwrap ${who}`;
+  w.innerHTML=`<div class="mbubble">${esc(text)}</div><div class="mtime">${time}</div>`;
+  msgs.appendChild(w); msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addSysMsg(text) {
+  const msgs=$('messages');
+  const el=document.createElement('div'); el.className='sys-msg'; el.textContent=text;
+  msgs.appendChild(el); msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping() {
+  if($('typing')) return;
+  const msgs=$('messages');
+  const el=document.createElement('div'); el.id='typing'; el.className='typing';
+  el.innerHTML='<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  msgs.appendChild(el); msgs.scrollTop=msgs.scrollHeight;
+}
+
+function removeTyping() { $('typing')?.remove(); }
+function goHome() { showScreen('home'); }
+function restartApp() { partnerId=null; theirName=''; roomId=null; isMatched=false; clientId='user_'+Math.random().toString(36).substr(2,9); goHome(); }
+
+// Fetch real stats on load
+updateStats();
+
+// Refresh stats every 10 seconds when on home screen
+setInterval(() => {
+  if ($('s-home').classList.contains('active')) updateStats();
+}, 10000);
+
+// Send heartbeat every 10 seconds so server counts us as active
+setInterval(() => {
+  fetch('/api/match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'heartbeat', clientId })
+  }).catch(()=>{});
+}, 10000);
+</script>
+</body>
+</html>
